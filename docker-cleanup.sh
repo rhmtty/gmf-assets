@@ -8,7 +8,7 @@ KEEP=3
 
 # Create the directory (and any necessary parent directories)
 # The -p flag prevents errors if the directory already exists
-mkdir -p "~${DIR_PATH}"
+sudo mkdir -p "${DIR_PATH}"
 
 echo "===== ENTERPRISE DOCKER CLEANUP START ====="
 echo "Keep latest $KEEP tags per repository"
