@@ -2,13 +2,13 @@
 
 set -Eeuo pipefail
 
-DIR_PATH="/DevOps/clean-up-image"
+DIR_PATH="/home/gmfadm/DevOps/clean-up-image"
 FILE_PATH="${DIR_PATH}/$(date +%d-%m-%Y).log"
 KEEP=3
 
 # Create the directory (and any necessary parent directories)
 # The -p flag prevents errors if the directory already exists
-sudo mkdir -p "${DIR_PATH}"
+mkdir -p "${DIR_PATH}"
 
 echo "===== ENTERPRISE DOCKER CLEANUP START ====="
 echo "Keep latest $KEEP tags per repository"
