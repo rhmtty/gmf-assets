@@ -67,7 +67,7 @@ for repo in $repos; do
     # Create logs inside /home/gmfadm/DevOps/clean-up-image-logs
     # ---------------------------------------
     echo "$(date +'%Y-%m-%d %H:%M:%S') $tag DELETED" >> "$FILE_PATH"
-    echo "Text has been appended to $FILE_PATH"
+    echo "[------- Text has been appended to $FILE_PATH -------]"
   done
 done
 
