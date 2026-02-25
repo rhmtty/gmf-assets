@@ -2,7 +2,13 @@
 
 set -Eeuo pipefail
 
+DIR_PATH="~/DevOps/clean-up-image/"
+FILE_PATH="${DIR_PATH}/$(date +%d-%m-%Y).log"
 KEEP=3
+
+# Create the directory (and any necessary parent directories)
+# The -p flag prevents errors if the directory already exists
+mkdir -p "${DIR_PATH}"
 
 echo "===== ENTERPRISE DOCKER CLEANUP START ====="
 echo "Keep latest $KEEP tags per repository"
@@ -56,6 +62,12 @@ for repo in $repos; do
 
     echo "Removing tag: $tag"
     docker image rm "$tag" || true
+
+    # ---------------------------------------
+    # Create logs inside /home/gmfadm/DevOps
+    # ---------------------------------------
+    echo (date +'%Y-%m-%d %H:%M:%S') + "$tag" + "DELETED" >> "$FILE_PATH"
+    echo "Text has been appended to $FILE_PATH"
   done
 done
 
@@ -65,6 +77,12 @@ done
 echo ""
 echo "Removing dangling images..."
 docker image prune -f
+
+# ---------------------------------------
+# Create logs inside /home/gmfadm/DevOps
+# ---------------------------------------
+echo "$(date +'%Y-%m-%d %H:%M:%S') $tag DELETED" >> "$FILE_PATH"
+echo "Text has been appended to $FILE_PATH"
 
 echo ""
 echo "===== CLEANUP FINISHED ====="
