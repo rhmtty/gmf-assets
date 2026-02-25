@@ -2,7 +2,7 @@
 
 set -Eeuo pipefail
 
-DIR_PATH="~/DevOps/clean-up-image/"
+DIR_PATH="/DevOps/clean-up-image/"
 FILE_PATH="${DIR_PATH}/$(date +%d-%m-%Y).log"
 KEEP=3
 
