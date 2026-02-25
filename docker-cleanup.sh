@@ -1,35 +1,70 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
-set -e
+set -Eeuo pipefail
 
-echo "===== Remove dangling (<none>) images ====="
-docker image prune -f
+KEEP=3
 
+echo "===== ENTERPRISE DOCKER CLEANUP START ====="
+echo "Keep latest $KEEP tags per repository"
 echo ""
-echo "===== Keep latest 3 images per repository ====="
 
-# Get unique repositories (exclude <none>)
-repos=$(docker images --format "{{.Repository}}" | grep -v "<none>" | sort -u)
+# ---------------------------------------
+# Get image IDs used by containers
+# ---------------------------------------
+echo "Collecting images used by containers..."
+USED_IMAGES=$(docker ps -a --format '{{.Image}}' | sort -u)
+
+# ---------------------------------------
+# Iterate repositories
+# ---------------------------------------
+repos=$(docker images --format '{{.Repository}}' | grep -v '<none>' | sort -u)
 
 for repo in $repos; do
   echo ""
-  echo "Processing repository: $repo"
+  echo ">>> Repository: $repo"
 
-  # Collect image IDs with creation time
-  mapfile -t images < <(
-    docker images "$repo" --format "{{.ID}}" | while read id; do
-      echo "$(docker inspect -f '{{.Created}}' $id) $id"
-    done | sort -r | awk '{print $2}'
+  # Build tag list with creation time
+  mapfile -t tag_lines < <(
+    docker images "$repo" --format '{{.Repository}}:{{.Tag}} {{.ID}}' \
+    | grep -v '<none>' \
+    | while read tag id; do
+        created=$(docker inspect -f '{{.Created}}' "$id")
+        echo "$created $tag $id"
+      done \
+    | sort -r
   )
 
-  # Remove images older than latest 3
-  for ((i=3; i<${#images[@]}; i++)); do
-    img=${images[$i]}
-    echo "Removing old image: $img"
-    echo docker rmi "$img" || true
-  done
+  total=${#tag_lines[@]}
+  echo "Total tags: $total"
 
+  if (( total <= KEEP )); then
+    echo "Nothing to cleanup"
+    continue
+  fi
+
+  # Process older tags
+  for ((i=KEEP; i<total; i++)); do
+    line="${tag_lines[$i]}"
+    tag=$(echo "$line" | awk '{print $2}')
+    id=$(echo "$line" | awk '{print $3}')
+
+    # Skip if used by container
+    if echo "$USED_IMAGES" | grep -q "$tag"; then
+      echo "SKIP (used by container): $tag"
+      continue
+    fi
+
+    echo "Removing tag: $tag"
+    docker image rm "$tag" || true
+  done
 done
 
+# ---------------------------------------
+# Remove dangling layers
+# ---------------------------------------
 echo ""
-echo "===== Cleanup completed ====="
+echo "Removing dangling images..."
+docker image prune -f
+
+echo ""
+echo "===== CLEANUP FINISHED ====="
