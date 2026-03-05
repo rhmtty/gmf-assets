@@ -75,8 +75,8 @@ done
 # Remove dangling layers
 # ---------------------------------------
 echo ""
-echo "Removing dangling images..."
-docker image prune -f
+echo "Removing dangling images and build cache..."
+docker image prune -f && docker builder prune -a -f
 
 # ---------------------------------------
 # Create logs inside /home/gmfadm/DevOps/clean-up-image-logs
